@@ -33,6 +33,8 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import com.alibaba.fastjson.JSONObject;
+
 public class HttpConnector {
 	
 	private static final String DEFAULT_CHARSET = "UTF-8";
@@ -248,7 +250,7 @@ public class HttpConnector {
        
         //»ñÈ¡urlÇ°×º
         //String httpDomain = ResourceLoader.getInstance().getConfig().getProperty("url.domain");
-        if(StringUtils.isNotBlank(httpDomain)){
+        if(httpDomain!=null&&!"".equals(httpDomain)){
         	jsonObject.put("fileUrl", filePath.replace(localFileRoot, httpDomain));        	
         }
         return jsonObject.toJSONString();
