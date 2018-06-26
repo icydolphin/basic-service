@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+  PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+
+<generatorConfiguration>
+<!-- classPathEntry:数据库的JDBC驱动 -->
+  <classPathEntry location="C:/Users/xinpeilu/.m2/repository/mysql/mysql-connector-java/5.1.36/mysql-connector-java-5.1.36.jar" />
+  <context id="context1">
+<!-- 去除自动生成的注释 -->
+<!-- <commentGenerator>
+ <property name="suppressAllComments" value="true" />
+</commentGenerator> -->
+
+    <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+        connectionURL="jdbc:mysql://192.168.168.72:3306/cms?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull"
+        userId="ctvit"
+        password="ctvitadmin">
+    </jdbcConnection>
+    <!-- <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+        connectionURL="jdbc:mysql://127.0.0.1:3306/cms?useUnicode=true&amp;characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull"
+        userId="root"
+        password="cctv.com">
+    </jdbcConnection> -->
+
+
+    <javaTypeResolver >
+      <property name="forceBigDecimals" value="false" />
+    </javaTypeResolver>
+<!-- 生成POJO类 -->
+    <javaModelGenerator targetPackage="com.ctvit.entity" targetProject="framework-spring">
+      <property name="enableSubPackages" value="true" />
+      <property name="trimStrings" value="true" />
+    </javaModelGenerator>
+
+<!-- 生成mapper配置文件 -->
+    <sqlMapGenerator targetPackage="com.ctvit.dao"  targetProject="framework-spring">
+      <property name="enableSubPackages" value="true" />
+    </sqlMapGenerator>
+
+<!-- 生成mapper的DAO接口 -->
+    <javaClientGenerator type="XMLMAPPER" targetPackage="com.ctvit.dao"  targetProject="framework-spring">
+      <property name="enableSubPackages" value="true" />
+    </javaClientGenerator>
+<!-- 可以有多个，tableName为表名，domainObjectName为POJO类名 -->
+	<table tableName="tab_user_inf" domainObjectName="UserInf"/> 
+	<!-- <table tableName="t_module" domainObjectName="ModuleOfPage"/> -->
+	
+ </context>
+</generatorConfiguration>
