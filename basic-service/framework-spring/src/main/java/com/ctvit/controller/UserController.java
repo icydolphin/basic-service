@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ctvit.entity.PageInfo;
 import com.ctvit.entity.UserInf;
 import com.ctvit.service.UserService;
 
@@ -19,6 +20,8 @@ public class UserController {
 	
 	@Autowired
 	private UserService userService;
+	
+	
 	@RequestMapping(value="/getUser",method=RequestMethod.GET,consumes = "application/json")
 	@ResponseBody
 	public JSONObject getUser(@RequestParam String loginName){
@@ -27,6 +30,17 @@ public class UserController {
 		result.put("result", userInfList);
 		result.put("msg", "success");
 		return result;	
+	}
+	
+	@RequestMapping(value="/getByPaging",method=RequestMethod.GET)
+	@ResponseBody
+	public JSONObject getByPaging(PageInfo pageInfo){
+		JSONObject result = new JSONObject();
+		List<UserInf> userInfList =  userService.getUserListByPaging(pageInfo);
+		result.put("result", userInfList);
+		result.put("msg", "success");
+		result.put("pageInfo", pageInfo);
+		return result;
 	}
 
 }
