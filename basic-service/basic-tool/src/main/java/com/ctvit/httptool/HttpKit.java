@@ -1,4 +1,4 @@
-package com.ctvit.httpconnector;
+package com.ctvit.httptool;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -11,9 +11,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -22,6 +24,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -33,16 +36,21 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
 import com.alibaba.fastjson.JSONObject;
 
-public class HttpConnector {
+public class HttpKit {
 	
 	private static final String DEFAULT_CHARSET = "UTF-8";
 
     private static final String _GET  = "GET"; // GET
     private static final String _POST = "POST";// POST
 	/**
-	 * getÇëÇó
+	 * getè¯·æ±‚
 	 * @param url
 	 * @param params
 	 * @param headers
@@ -66,7 +74,7 @@ public class HttpConnector {
         }
         in.close();
         if (http != null) {
-            http.disconnect();// ¹Ø±ÕÁ¬½Ó
+            http.disconnect();// å…³é—­è¿æ¥
         }
         return bufferRes.toString();
 	}
@@ -79,8 +87,12 @@ public class HttpConnector {
     	return get(url, null);
     }
 	
+    public static String post(String url,String requestBody) throws Exception{
+    	return post(url, requestBody, null);
+    }
+    
     /**
-     * postÇëÇó
+     * postè¯·æ±‚
      * @param url
      * @param requestBody
      * @param headers
@@ -109,13 +121,13 @@ public class HttpConnector {
         }
         in.close();
         if (http != null) {
-            http.disconnect();// ¹Ø±ÕÁ¬½Ó
+            http.disconnect();// å…³é—­è¿æ¥
         }
         return bufferRes.toString();
 	}
 	
 	 /**
-     * ÉÏ´«ÎÄ¼ş
+     * å•æ–‡ä»¶ä¸Šä¼ 
      * @param url
      * @param file
      * @param param
@@ -127,7 +139,7 @@ public class HttpConnector {
      * @throws KeyManagementException
      */
     public static String upload(String url,Map<String,String> param,File file,Map<String,String> header) throws Exception{
-    	 String boundary = "-----------------------------"+System.currentTimeMillis(); // ¶¨ÒåÊı¾İ·Ö¸ôÏß  
+    	String boundary = "-----------------------------"+System.currentTimeMillis(); // å®šä¹‰æ•°æ®åˆ†éš”çº¿  
         StringBuffer bufferRes = null;
         HttpURLConnection conn = null;
         if (isHttps(url)) {
@@ -142,7 +154,7 @@ public class HttpConnector {
         OutputStream out = new DataOutputStream(conn.getOutputStream());  
         StringBuilder sb1 = new StringBuilder();    
         sb1.append("--" + boundary + "\r\n") ;   
-        //fileFormParam Îª¸ÃformµÄÃû³Æ
+        //fileFormParam ä¸ºè¯¥formçš„åç§°
         sb1.append("Content-Disposition: form-data;name=\"media\";filename=\""+ file.getName() + "\"\r\n");    
         sb1.append("Content-Type:application/octet-stream\r\n\r\n");
         out.write(sb1.toString().getBytes());  
@@ -153,7 +165,7 @@ public class HttpConnector {
         while ((bytes = fs.read(bufferOut)) != -1) {  
             out.write(bufferOut, 0, bytes);  
         }  
-        out.write("\r\n".getBytes()); //¶à¸öÎÄ¼şÊ±£¬¶ş¸öÎÄ¼şÖ®¼ä¼ÓÈëÕâ¸ö  
+        out.write("\r\n".getBytes()); //å¤šä¸ªæ–‡ä»¶æ—¶ï¼ŒäºŒä¸ªæ–‡ä»¶ä¹‹é—´åŠ å…¥è¿™ä¸ª  
         fs.close(); 
         StringBuilder sb2 = new StringBuilder();    
         if(param!=null&&param.keySet().size()>0){
@@ -174,7 +186,7 @@ public class HttpConnector {
         out.flush();    
         out.close();   
 
-        // ¶¨ÒåBufferedReaderÊäÈëÁ÷À´¶ÁÈ¡URLµÄÏìÓ¦  
+        // å®šä¹‰BufferedReaderè¾“å…¥æµæ¥è¯»å–URLçš„å“åº”  
         InputStream in = conn.getInputStream();
         BufferedReader read = new BufferedReader(new InputStreamReader(in, DEFAULT_CHARSET));
         String valueString = null;
@@ -184,17 +196,19 @@ public class HttpConnector {
         }
         in.close();
         if (conn != null) {
-            // ¹Ø±ÕÁ¬½Ó
+            // å…³é—­è¿æ¥
             conn.disconnect();
         }
         return bufferRes.toString();
     }
     
+    
+    
     /**
-     * ÏÂÔØÎÄ¼ş
+     * ä¸‹è½½æ–‡ä»¶
      * @param url
      * @param path
-     * @param uploadFileRoot ±¾µØÎÄ¼şµÄ¸ùÄ¿Â¼
+     * @param uploadFileRoot æœ¬åœ°æ–‡ä»¶çš„æ ¹ç›®å½•
      * @param httpDomain 
      * @return
      * @throws Exception
@@ -209,9 +223,9 @@ public class HttpConnector {
         }
         http.connect();
         InputStream in = http.getInputStream();
-        //»ñÈ¡ÎÄ¼ş´æ´¢Â·¾¶
+        //è·å–æ–‡ä»¶å­˜å‚¨è·¯å¾„
         //String uploadFileRoot = ResourceLoader.getInstance().getConfig().getProperty("upload.dir");
-        //»ñÈ¡ÎÄ¼şºó×º
+        //è·å–æ–‡ä»¶åç¼€
         BufferedInputStream bis = new BufferedInputStream(in);
         //String extName = HttpURLConnection.guessContentTypeFromStream(bis);
         String extName=url.substring(url.lastIndexOf(".")+1);
@@ -225,7 +239,7 @@ public class HttpConnector {
 		mkDir(new File(fileDir));
 		String filePath = fileDir+fileName;
 		File outFile = new File(filePath); 
-	  	//´´½¨Êä³öÁ÷ 
+	  	//åˆ›å»ºè¾“å‡ºæµ 
 	  	FileOutputStream outStream = new FileOutputStream(outFile);
 	  	BufferedInputStream bi = new BufferedInputStream(bis);
 	  	byte[] data = new byte[1024];  
@@ -238,7 +252,7 @@ public class HttpConnector {
 	  	bi.close();
 		in.close();
         if (http != null) {
-            http.disconnect();// ¹Ø±ÕÁ¬½Ó
+            http.disconnect();// å…³é—­è¿æ¥
         }
         jsonObject.put("filePath", filePath.replace(localFileRoot, ""));
         jsonObject.put("fileName", fileName);
@@ -248,7 +262,7 @@ public class HttpConnector {
         	jsonObject.put("fileType","file");
         }
        
-        //»ñÈ¡urlÇ°×º
+        //è·å–urlå‰ç¼€
         //String httpDomain = ResourceLoader.getInstance().getConfig().getProperty("url.domain");
         if(httpDomain!=null&&!"".equals(httpDomain)){
         	jsonObject.put("fileUrl", filePath.replace(localFileRoot, httpDomain));        	
@@ -258,7 +272,7 @@ public class HttpConnector {
     }
     
     /**
-     * ĞÂ½¨ÎÄ¼şÄ¿Â¼£¨µü´ú½¨Á¢£©
+     * æ–°å»ºæ–‡ä»¶ç›®å½•ï¼ˆè¿­ä»£å»ºç«‹ï¼‰
      * @param file
      */
     private static  void mkDir(File file) {  
@@ -270,7 +284,7 @@ public class HttpConnector {
         }  
     }
     /**
-     * »ñÈ¡ÎÄ¼şµÄContentType
+     * è·å–æ–‡ä»¶çš„ContentType
      * @param contentType
      * @return
      */
@@ -287,7 +301,7 @@ public class HttpConnector {
     }
 	
 	/**
-     * ³õÊ¼»¯httpÇëÇó²ÎÊı
+     * åˆå§‹åŒ–httpè¯·æ±‚å‚æ•°
      * @param url
      * @param method
      * @return
@@ -300,15 +314,15 @@ public class HttpConnector {
         TrustManager[] tm = { new MyX509TrustManager() };  
         SSLContext sslContext = SSLContext.getInstance("SSL", "SunJSSE");  
         sslContext.init(null, tm, new java.security.SecureRandom());  
-        // ´ÓÉÏÊöSSLContext¶ÔÏóÖĞµÃµ½SSLSocketFactory¶ÔÏó  
+        // ä»ä¸Šè¿°SSLContextå¯¹è±¡ä¸­å¾—åˆ°SSLSocketFactoryå¯¹è±¡  
         SSLSocketFactory ssf = sslContext.getSocketFactory();
         URL _url = new URL(url);
         HttpsURLConnection http = (HttpsURLConnection) _url.openConnection();
-        // ÉèÖÃÓòÃûĞ£Ñé
-        http.setHostnameVerifier(new HttpConnector().new TrustAnyHostnameVerifier());
-        // Á¬½Ó³¬Ê±
+        // è®¾ç½®åŸŸåæ ¡éªŒ
+        http.setHostnameVerifier(new HttpKit().new TrustAnyHostnameVerifier());
+        // è¿æ¥è¶…æ—¶
         http.setConnectTimeout(25000);
-        // ¶ÁÈ¡³¬Ê± --·şÎñÆ÷ÏìÓ¦±È½ÏÂı£¬Ôö´óÊ±¼ä
+        // è¯»å–è¶…æ—¶ --æœåŠ¡å™¨å“åº”æ¯”è¾ƒæ…¢ï¼Œå¢å¤§æ—¶é—´
         http.setReadTimeout(25000);
         http.setRequestMethod(method);
         http.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
@@ -326,7 +340,7 @@ public class HttpConnector {
     }
     
     /**
-     * ³õÊ¼»¯httpÇëÇó²ÎÊı
+     * åˆå§‹åŒ–httpè¯·æ±‚å‚æ•°
      * @param url
      * @param method
      * @param headers
@@ -336,9 +350,9 @@ public class HttpConnector {
     private static HttpURLConnection initHttp (String url, String method, Map<String, String> headers) throws IOException {
         URL _url = new URL(url);
         HttpURLConnection http = (HttpURLConnection) _url.openConnection();
-        // Á¬½Ó³¬Ê±
+        // è¿æ¥è¶…æ—¶
         http.setConnectTimeout(25000);
-        // ¶ÁÈ¡³¬Ê± --·şÎñÆ÷ÏìÓ¦±È½ÏÂı£¬Ôö´óÊ±¼ä
+        // è¯»å–è¶…æ—¶ --æœåŠ¡å™¨å“åº”æ¯”è¾ƒæ…¢ï¼Œå¢å¤§æ—¶é—´
         http.setReadTimeout(25000);
         http.setRequestMethod(method);
         http.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
@@ -354,27 +368,27 @@ public class HttpConnector {
         return http;
     }
     /**
-     * https ÓòÃûĞ£Ñé
+     * https åŸŸåæ ¡éªŒ
      * @param url
      * @param params
      * @return
      */
     private class TrustAnyHostnameVerifier implements HostnameVerifier {
         public boolean verify(String hostname, SSLSession session) {
-            return true;// Ö±½Ó·µ»Øtrue
+            return true;// ç›´æ¥è¿”å›true
         }
     }
     
     /**
-     * ¼ì²âÊÇ·ñhttps
+     * æ£€æµ‹æ˜¯å¦https
      * @param url
      */
     private static boolean isHttps (String url) {
         return url.startsWith("https");
     }
     /**
-     * ¹¦ÄÜÃèÊö: ¹¹ÔìÇëÇó²ÎÊı
-     * @return       ·µ»ØÀàĞÍ: 
+     * åŠŸèƒ½æè¿°: æ„é€ è¯·æ±‚å‚æ•°
+     * @return       è¿”å›ç±»å‹: 
      * @throws UnsupportedEncodingException 
      */
     private static String initParams(String url, Map<String, String> params) throws UnsupportedEncodingException {
@@ -390,8 +404,8 @@ public class HttpConnector {
     }
     
     /**
-     * map¹¹Ôìurl
-     * @return       ·µ»ØÀàĞÍ: 
+     * mapæ„é€ url
+     * @return       è¿”å›ç±»å‹: 
      * @throws UnsupportedEncodingException 
      */
     private static String map2Url(Map<String, String> paramToMap) throws UnsupportedEncodingException {
@@ -416,7 +430,7 @@ public class HttpConnector {
     }
 }
 /**
- * Ö¤Êé¹ÜÀí
+ * è¯ä¹¦ç®¡ç†
  */
 class MyX509TrustManager implements X509TrustManager {
 
@@ -431,5 +445,6 @@ class MyX509TrustManager implements X509TrustManager {
     public void checkServerTrusted(X509Certificate[] chain, String authType)
             throws CertificateException {
     }
+    
     
 }

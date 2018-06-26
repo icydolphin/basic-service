@@ -2,9 +2,12 @@ package com.ctvit.propertyreader;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 /**
- * ÏµÍ³ÅäÖÃÎÄ¼ş¶ÁÈ¡Àà
+ * ç³»ç»Ÿé…ç½®æ–‡ä»¶è¯»å–ç±»
  * @author xinpeilu
  *
  */
@@ -26,7 +29,7 @@ public class PropertyReader {
 	}
 	
 	/**
-	 * »ñÈ¡filePathµÄ.propertiesÎÄ¼şµÄÊôĞÔ
+	 * è·å–filePathçš„.propertiesæ–‡ä»¶çš„å±æ€§
 	 * @param filePath
 	 */
 	public PropertyReader(String filePath){
@@ -38,7 +41,7 @@ public class PropertyReader {
 		}
 	}
 	/**
-	 * »ñÈ¡ÏµÍ³ÅäÖÃÊôĞÔ
+	 * è·å–ç³»ç»Ÿé…ç½®å±æ€§
 	 * @return
 	 */
 	public static PropertyReader getInstance(){
@@ -50,8 +53,28 @@ public class PropertyReader {
 		return propertyReader;
 	}
 	
+	/**
+	 * è·å–æŒ‡å®škeyçš„å€¼
+	 * @param key
+	 * @return
+	 */
 	public String get(String key){
 		return (String)properties.get(key);
+	}
+	
+	/**
+	 * è·å–é…ç½®æ–‡ä»¶ä¸­çš„æ‰€æœ‰å±æ€§
+	 * @return
+	 */
+	public Map<String,String> getAllParams(){
+		Map<String,String> paramMap = new HashMap<String,String>();
+		Enumeration  e = properties.propertyNames();
+		while(e.hasMoreElements()){
+			String key = (String)e.nextElement();
+			String value = properties.getProperty(key);
+			paramMap.put(key, value);
+		}	
+		return paramMap;
 	}
 	
 	public static void main(String[] args) {
