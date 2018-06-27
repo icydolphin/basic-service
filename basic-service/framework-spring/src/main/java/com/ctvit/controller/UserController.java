@@ -21,7 +21,11 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 	
-	
+	/**
+	 * 获取单个用户
+	 * @param loginName
+	 * @return
+	 */
 	@RequestMapping(value="/getUser",method=RequestMethod.GET,consumes = "application/json")
 	@ResponseBody
 	public JSONObject getUser(@RequestParam String loginName){
@@ -32,6 +36,11 @@ public class UserController {
 		return result;	
 	}
 	
+	/**
+	 * 分页获取用户
+	 * @param pageInfo
+	 * @return
+	 */
 	@RequestMapping(value="/getByPaging",method=RequestMethod.GET)
 	@ResponseBody
 	public JSONObject getByPaging(PageInfo pageInfo){
