@@ -12,5 +12,6 @@
     <module>basic-tool</module>
     <module>framework-spring</module>
     <module>framework-jersey</module>
+    <module>zookeeper-apply</module>
   </modules>
 </project>

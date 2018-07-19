@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.ctvit</groupId>
+    <artifactId>basic-service</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <groupId>com.ctvit</groupId>
+  <artifactId>zookeeper-apply</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>war</packaging>
+  <name>zookeeper-apply Maven Webapp</name>
+  <url>http://maven.apache.org</url>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- zookeeper client -->
+    <dependency>
+	    <groupId>com.101tec</groupId>
+	    <artifactId>zkclient</artifactId>
+	    <version>0.10</version>
+	</dependency>
+	<!-- kafka client -->
+	<dependency>
+	    <groupId>org.apache.kafka</groupId>
+	    <artifactId>kafka_2.11</artifactId>
+	    <version>1.1.0</version> 
+	</dependency>
+	
+	<!-- <dependency>
+	    <groupId>org.apache.kafka</groupId>
+	    <artifactId>kafka_2.10</artifactId>
+	    <version>0.8.2.2</version>  
+	</dependency> -->
+	<!-- <dependency>
+	    <groupId>org.apache.kafka</groupId>
+	    <artifactId>kafka-clients</artifactId>
+	    <version>1.1.0</version>
+	</dependency> -->
+	<!-- 日志 -->
+	 <dependency>
+	    <groupId>log4j</groupId>
+	    <artifactId>log4j</artifactId>
+	    <version>1.2.17</version>
+	</dependency>
+  </dependencies>
+  <build>
+    <finalName>zookeeper-apply</finalName>
+  </build>
+</project>
